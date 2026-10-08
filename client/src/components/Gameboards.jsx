@@ -1,27 +1,28 @@
 import { useGameContext } from '../contexts/UserContext'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Chat from './Chat'
 import Results from './Results'
-import { Modal } from 'react-bootstrap'
 import { useNavigate } from 'react-router-dom'
 
 /* seagulls */
 import happy_seagull from '../assets/images/seagull1.svg'
 import watching_seagull from '../assets/images/seagull2.svg'
-import really_happy_seagull from '../assets/images/seagull3.svg'
-import really_sad_seagull from '../assets/images/seagull4.svg'
 import ohoy_seagull from '../assets/images/seagull5.svg'
 import welldone_seagull from '../assets/images/seagull6.svg'
 import captain_seagull from '../assets/images/seagull7.svg'
 
 const Gameboards = () => {
 
-	const { userName, setUserName, opponentName, setOpponentName, yachts, shootTarget, move, setMove, setShootTarget, setResultsMessage, socket, illustration, setIllustration } = useGameContext()
+	const { userName, opponentName, yachts, shootTarget, move, setMove, setShootTarget, setResultsMessage, socket, setIllustration, gameMode, recordGameResult } = useGameContext()
 
 	const navigate = useNavigate()
 
-	const [gameEnd, setGameEnd] = useState(false)
-	const [gameEndMsg, setGameEndMsg] = useState('')
+	const [activeBoard, setActiveBoard] = useState('my')
+
+	// per-game statistics (tracked so they can be saved when the game ends)
+	const shotsRef = useRef(0)
+	const hitsRef = useRef(0)
+	const missesRef = useRef(0)
 
 	const update = (e) => {
 		e.preventDefault()
@@ -32,22 +33,11 @@ const Gameboards = () => {
 		}
 	}
 
-	const handleRestartGame = () => {
-		socket.emit('game:end')
-		for (let point of document.getElementsByClassName('board-cell')) {
-			point.classList.remove('board_yacht', 'board_miss', 'board_my_yacht_miss', 'board_hit', 'board_killed', 'blocked', 'board_my_yacht_killed')
-		}
-		setUserName()
-		setOpponentName()
-		setShootTarget()
-		setGameEnd(false)
-
-		navigate('/')
-	}
-
 	useEffect(() => {
 		const handleMiss = (user_id, point) => {
 			if (socket.id === user_id) {
+				missesRef.current += 1
+				shotsRef.current += 1
 				setMove(false)
 
 				document.getElementById('enemyfield_' + point.row + point.col).classList.add('board_miss', 'blocked')
@@ -62,6 +52,7 @@ const Gameboards = () => {
 			}
 		}
 		socket.on('shot:miss', handleMiss)
+		return () => socket.off('shot:miss', handleMiss)
 	}, [socket, setMove, setResultsMessage, setIllustration])
 
 	useEffect(() => {
@@ -73,6 +64,8 @@ const Gameboards = () => {
 	useEffect(() => {
 		const handleHit = (user_id, point, killed_yacht) => {
 			if (socket.id === user_id) {
+				hitsRef.current += 1
+				shotsRef.current += 1
 				setMove(false)
 
 				document.getElementById('enemyfield_' + point.row + point.col).classList.add('board_hit', 'blocked')
@@ -107,32 +100,29 @@ const Gameboards = () => {
 			}
 		}
 		socket.on('shot:hit', handleHit)
+		return () => socket.off('shot:hit', handleHit)
 	}, [socket, setMove, setResultsMessage, setIllustration])
 
 	useEffect(() => {
-		const handleWinner = (user_id, point, killed_yacht) => {
-			if (socket.id === user_id) {
+		const handleWinner = (user_id) => {
+			const won = socket.id === user_id
 
-				for (let point of killed_yacht.points) {
-					document.getElementById('enemyfield_' + point.row + point.col).classList.add('board_killed', 'blocked')
-				}
-				setResultsMessage('You won!!! Congratulations!!!')
-				setGameEnd(true)
-				setGameEndMsg('You won! Congratulations! Press the button to restart the game.')
-				setIllustration(really_happy_seagull)
-			} else {
+			// save the finished game into the cumulative statistics
+			recordGameResult(won ? 'win' : 'loss', {
+				shots: shotsRef.current,
+				hits: hitsRef.current,
+				misses: missesRef.current,
+			})
 
-				for (let point of killed_yacht.points) {
-					document.getElementById('myfield_' + point.row + point.col).classList.add('board_my_yacht_killed')
-				}
-				setResultsMessage('Looooooseeeeeer!!!')
-				setGameEndMsg('You lost! Press the button to restart the game and try one more time.')
-				setGameEnd(true)
-				setIllustration(really_sad_seagull)
-			}
+			shotsRef.current = 0
+			hitsRef.current = 0
+			missesRef.current = 0
+
+			navigate('/lobby')
 		}
 		socket.on('shot:winner', handleWinner)
-	}, [socket, setResultsMessage, setIllustration, setGameEnd])
+		return () => socket.off('shot:winner', handleWinner)
+	}, [socket, recordGameResult, navigate])
 
 	useEffect(() => {
 		socket.emit('game:shoot', shootTarget)
@@ -152,20 +142,15 @@ const Gameboards = () => {
 
 	return (
 		<>
-			<Modal id="restartModal" show={gameEnd}>
-				<Modal.Body id="modalContentYachts">
-					<div className='d-flex justify-content-center flex-column'>
-						<h2>{gameEndMsg}</h2>
-						<img src={illustration} alt="seagull" />
-						<button className="button btn-gold" onClick={handleRestartGame}>Restart the game</button>
-					</div>
-
-				</Modal.Body>
-			</Modal>
-
 			<Results />
+
+			<div className="board-tabs">
+				<button className={`board-tab ${activeBoard === 'my' ? 'active' : ''}`} onClick={() => setActiveBoard('my')}>Your board</button>
+				<button className={`board-tab ${activeBoard === 'enemy' ? 'active' : ''}`} onClick={() => setActiveBoard('enemy')}>Enemy's board</button>
+			</div>
+
 			<div className="all-boards">
-				<div className="board-container text-center">
+				<div className={`board-container text-center ${activeBoard === 'my' ? 'board-active' : 'board-inactive'}`}>
 					<h2 className="username-title">Your board</h2>
 					<p className="username-board">{userName}</p>
 					<div className="board player-grid m-auto" >
@@ -178,7 +163,7 @@ const Gameboards = () => {
 
 					</div>
 				</div>
-				<div className="board-container text-center">
+				<div className={`board-container text-center ${activeBoard === 'enemy' ? 'board-active' : 'board-inactive'}`}>
 					<h2 className="username-title">Enemy's board</h2>
 					<p className="username-board">{opponentName}</p>
 
@@ -194,7 +179,7 @@ const Gameboards = () => {
 				</div>
 			</div>
 
-			<Chat />
+			{gameMode !== 'computer' && <Chat />}
 
 		</>
 	)

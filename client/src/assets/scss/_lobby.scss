@@ -1,0 +1,157 @@
+@import 'colors';
+@import 'fonts';
+
+/**
+* Lobby
+*/
+
+.lobby-container {
+	min-height: calc(100vh - 4.5rem);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 2rem 1rem;
+	position: relative;
+	overflow: hidden;
+}
+
+.lobby-card {
+	width: 100%;
+	max-width: 640px;
+	min-height: 440px;
+	background-color: white;
+	border: solid 1px $gold;
+	border-radius: 20px;
+	padding: 2rem 1.5rem;
+	text-align: center;
+	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+	position: relative;
+	z-index: 1;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+}
+
+.lobby-title {
+	font-family: $cursiveFont;
+	font-size: 2.5rem;
+	margin: 0;
+}
+
+.lobby-name {
+	font-family: $cursiveFont;
+	font-size: 1.8rem;
+	color: $oceanblue;
+	margin: 0 0 1rem;
+}
+
+.lobby-empty {
+	font-family: $standardFont;
+	font-size: 1.05rem;
+	color: #555;
+	margin: 1rem 0 2rem;
+}
+
+.lobby-seagull {
+	width: auto;
+	height: 130px;
+	padding: 0;
+}
+
+.lobby-stats {
+	display: grid;
+	grid-template-columns: repeat(2, 1fr);
+	gap: 1rem;
+	margin: 1.5rem 0;
+	width: 100%;
+}
+
+.lobby-stat {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	border: solid 1px $gold;
+	border-radius: 12px;
+	padding: 0.75rem 0.5rem;
+}
+
+.lobby-stat-value {
+	font-family: $standardFont;
+	font-size: 1.8rem;
+	font-weight: 700;
+	color: $oceanblue;
+}
+
+.lobby-stat-label {
+	font-family: $standardFont;
+	font-size: 0.85rem;
+	color: #555;
+}
+
+.lobby-actions {
+	display: flex;
+	justify-content: center;
+	gap: 1rem;
+	flex-wrap: wrap;
+	margin-top: 1rem;
+	width: 100%;
+}
+
+// yachts sailing across the screen
+.lobby-yacht {
+	position: absolute;
+	left: 0;
+	pointer-events: none;
+	opacity: 0.85;
+	z-index: 0;
+	animation-name: sail;
+	animation-timing-function: linear;
+	animation-iteration-count: infinite;
+	animation-duration: 70s;
+}
+
+.lobby-yacht img {
+	padding: 0;
+	animation-name: rock;
+	animation-timing-function: ease-in-out;
+	animation-iteration-count: infinite;
+	animation-duration: 4s;
+}
+
+.lobby-yacht-flip {
+	transform: scaleX(-1);
+	display: inline-block;
+}
+
+@keyframes sail {
+	from {
+		transform: translateX(-25vw);
+	}
+	to {
+		transform: translateX(125vw);
+	}
+}
+
+@keyframes rock {
+	0%,
+	100% {
+		transform: rotate(-6deg);
+	}
+	50% {
+		transform: rotate(6deg);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.lobby-yacht,
+	.lobby-yacht img {
+		animation: none;
+	}
+}
+
+@media screen and (min-width: 600px) {
+	.lobby-stats {
+		grid-template-columns: repeat(4, 1fr);
+	}
+}

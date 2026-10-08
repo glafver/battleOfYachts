@@ -6,6 +6,8 @@
 .modal-content {
 	display: flex;
 	align-items: center;
+	border-radius: 20px !important;
+	overflow: hidden;
 }
 
 #modalManuallyChoose {
@@ -26,11 +28,23 @@
 
 #chooseYachts {
 	width: 95%;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 1.5rem;
+	align-self: stretch;
 }
 
 #chooseYachtMsg {
-	padding: 1rem;
+	padding: 1rem 1.5rem;
 	font-family: $cursiveFont;
+	font-size: 1.8rem;
+	background: #eadec5;
+	border: 1px solid $gold;
+	border-radius: 16px;
+	width: fit-content;
+	margin: 0;
 }
 
 #boardPlaceYachts {
@@ -42,15 +56,12 @@
 #modalDialogYachts {
 	display: flex;
 	align-items: center;
+	justify-content: center;
 	text-align: center;
 
 	font-size: 1rem;
 	width: 95%;
-}
-
-#modalDialogWaiting,
-#modalDialogYachts {
-	top: 20vh;
+	min-height: calc(100% - 1rem);
 }
 
 .btnPlaceYachts {
@@ -77,11 +88,11 @@
 }
 
 #modalContent p {
-	font-size: 0.8rem;
+	font-size: 0.9rem;
 }
 
 #modalText {
-	font-size: 0.8rem;
+	font-size: 0.9rem;
 }
 
 .yachts-container {
@@ -94,7 +105,8 @@
 	aspect-ratio: 2 / 1;
 
 	gap: 1px;
-	margin: 1rem;
+	margin: 0;
+	width: 100%;
 }
 
 .yacht-blocked {
@@ -187,4 +199,179 @@
 
 #restartModal {
 	height: 40vh;
+}
+
+/* How to play — stepper */
+.stepper-body {
+	text-align: center;
+}
+
+.stepper-dots {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	gap: 0.5rem;
+	margin-bottom: 1rem;
+}
+
+.stepper-dot {
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
+	background: #cfcfcf;
+	transition: all 0.2s ease;
+}
+
+.stepper-dot.active {
+	background: $oceanblue;
+	width: 26px;
+	border-radius: 10px;
+}
+
+.stepper-dot.done {
+	background: $gold;
+}
+
+.stepper-layout {
+	display: grid;
+	grid-template-columns: 4fr 6fr;
+	gap: 1.75rem;
+	align-items: stretch;
+	margin: 1.5rem 0;
+	position: relative;
+}
+
+.stepper-info {
+	text-align: center;
+	background: #eadec5;
+	border: 1px solid $gold;
+	border-radius: 16px;
+	padding: 1.75rem 1.5rem;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+}
+
+.stepper-title {
+	font-family: $cursiveFont;
+	font-size: 2rem;
+	margin: 0 0 0.75rem;
+}
+
+.stepper-text {
+	font-family: $standardFont;
+	font-size: 1.05rem;
+	color: #555;
+	margin: 0;
+}
+
+.stepper-image {
+	width: 100%;
+	border-radius: 10px;
+	border: 1px solid $gold;
+	margin: 0;
+	padding: 0;
+	display: block;
+	cursor: zoom-in;
+}
+
+.stepper-controls {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-top: 1.5rem;
+}
+
+.stepper-controls .button {
+	margin: 0;
+}
+
+.stepper-controls .stepper-dots {
+	margin-bottom: 0;
+}
+
+.how-to-play-container {
+	min-height: calc(100vh - 4.5rem);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 2rem 1rem;
+	position: relative;
+	overflow: hidden;
+}
+
+.how-to-play-card {
+	width: 100%;
+	max-width: 780px;
+	min-height: 440px;
+	background-color: white;
+	border: solid 1px $gold;
+	border-radius: 20px;
+	padding: 2rem 2rem;
+	text-align: center;
+	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+	position: relative;
+	z-index: 1;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+}
+
+.how-to-play-title {
+	font-family: $cursiveFont;
+	font-size: 2.75rem;
+	margin: 0 0 1.5rem;
+}
+
+.step-flash {
+	position: absolute;
+	inset: 0;
+	background: white;
+	border-radius: 12px;
+	z-index: 10;
+	opacity: 0;
+	pointer-events: none;
+	transition: opacity 0.25s ease;
+}
+
+.step-flash.visible {
+	opacity: 1;
+}
+
+@media screen and (max-width: 700px) {
+	.stepper-layout {
+		grid-template-columns: 1fr;
+	}
+
+	.stepper-info {
+		text-align: center;
+	}
+}
+
+.image-overlay {
+	position: fixed;
+	inset: 0;
+	background: rgba(0, 0, 0, 0.85);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 3000;
+	cursor: zoom-out;
+	padding: 2rem;
+}
+
+.image-overlay img {
+	max-width: 92vw;
+	max-height: 92vh;
+	padding: 0;
+	border-radius: 10px;
+	box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+@media screen and (max-width: 600px) {
+	.btnPlaceYachts {
+		flex-direction: column;
+		align-items: center;
+		gap: 0.5rem;
+	}
 }

@@ -6,18 +6,21 @@ let io = null; // socket.io server instance
 // list of socket-ids and their username
 const rooms = [];
 
-// a 'toggler' for a status of a waiting opponent 
+// a 'toggler' for a status of a waiting opponent
 let waiting_opponent = true;
 
 // creating a temporary variabel with a name for room
 let roomName = false;
 
+// battlefield size (10x10)
+const FIELD_SIZE = 10;
+
 // we declare class yacht for create a new yacht
 class Yacht {
 
 	// @length - how many spans our ship will take on battlefield
-	// @row_start - the starting row of our ship 
-	// @row_col - the starting column of our ship 
+	// @row_start - the starting row of our ship
+	// @row_col - the starting column of our ship
 	// @vertical - horizontal ship = "0", vertical ship = "1"
 	constructor(length, row_start, col_start, vertical) {
 		this.row_start = row_start
@@ -39,7 +42,7 @@ class Yacht {
 
 		for (let current_yacht_point of current_yacht_points) {
 			for (let other_yacht_point of other_yacht_points) {
-				// points are considered as near if they have either same position or 
+				// points are considered as near if they have either same position or
 				// they are neighbours (neighbors mean row/colum difference is 1).
 				if (Math.abs(current_yacht_point.row - other_yacht_point.row) <= 1
 					&& Math.abs(current_yacht_point.col - other_yacht_point.col) <= 1) {
@@ -55,7 +58,7 @@ class Yacht {
 	isNotFitField(field_rows, field_columns) {
 
 		let current_yacht_points = this.points;
-		// we check if every point within battlefield. 
+		// we check if every point within battlefield.
 		// 0 < column <= field_columns
 		// 0 < row    <= field_rows
 		for (let point of current_yacht_points) {
@@ -126,7 +129,6 @@ const handleDisconnect = function () {
 }
 
 const getNewYachts = function () {
-	const FIELD_SIZE = 10;
 	const yacht_sizes = [4, 3, 2, 2];
 	const yachts = [];
 
@@ -163,6 +165,24 @@ const getNewYachts = function () {
 	return yachts
 }
 
+// builds a list of Yacht objects from the client payload (or random if none given)
+const buildYachts = function (yachts) {
+	if (!yachts) {
+		return getNewYachts();
+	}
+
+	const result = [];
+	for (let yacht of yachts) {
+		if (yacht.vertical === 'horizontal') {
+			yacht.vertical = 0
+		} else {
+			yacht.vertical = 1
+		}
+		result.push(new Yacht(yacht.length, yacht.row_start, yacht.col_start, yacht.vertical))
+	}
+	return result;
+}
+
 const handleChatMessage = async function (data) {
 
 	const room = rooms.find(room => room.users.find(user => user.id === this.id));
@@ -173,6 +193,144 @@ const handleChatMessage = async function (data) {
 	this.broadcast.to(room.id).emit('chat:message', data)
 }
 
+// checks if a coordinate is inside the battlefield
+const inField = function (row, col) {
+	return row >= 0 && row < FIELD_SIZE && col >= 0 && col < FIELD_SIZE
+}
+
+// checks if a coordinate was already shot
+const alreadyShot = function (shots, row, col) {
+	return shots.some(s => s.row === row && s.col === col)
+}
+
+// Computer AI: picks the next cell to shoot (hunt & target strategy)
+const getBotShot = function (bot) {
+	const ai = bot.ai;
+	let target = null;
+
+	// if we are currently hunting a damaged (but not sunk) ship, target its neighbours
+	while (ai.targets.length > 0) {
+		const idx = Math.floor(Math.random() * ai.targets.length);
+		const candidate = ai.targets[idx];
+		ai.targets.splice(idx, 1);
+
+		if (!alreadyShot(ai.shots, candidate.row, candidate.col)) {
+			target = candidate;
+			break;
+		}
+	}
+
+	// otherwise shoot a random cell that we have not shot before
+	if (!target) {
+		const unshot = [];
+		for (let r = 0; r < FIELD_SIZE; r++) {
+			for (let c = 0; c < FIELD_SIZE; c++) {
+				if (!alreadyShot(ai.shots, r, c)) {
+					unshot.push({ row: r, col: c });
+				}
+			}
+		}
+		target = unshot[Math.floor(Math.random() * unshot.length)];
+	}
+
+	ai.shots.push(target);
+	return target;
+}
+
+// Computer AI: update targeting info after a shot
+const updateBotAi = function (bot, target, isHit, killedYacht) {
+	const ai = bot.ai;
+
+	if (!isHit) {
+		return;
+	}
+
+	if (killedYacht) {
+		// ship is sunk, stop hunting it
+		ai.targets = [];
+		return;
+	}
+
+	// damaged but not sunk: add orthogonal neighbours as candidates
+	const directions = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+	for (const [dr, dc] of directions) {
+		const row = target.row + dr;
+		const col = target.col + dc;
+		const alreadyTargeted = ai.targets.some(t => t.row === row && t.col === col);
+
+		if (inField(row, col) && !alreadyShot(ai.shots, row, col) && !alreadyTargeted) {
+			ai.targets.push({ row, col });
+		}
+	}
+}
+
+// processes a shot from `shooter` against the opponent in the same room
+const processShot = function (room, shooter, target) {
+	const opponent = room.users.find(user => user.id !== shooter.id);
+
+	let opponentCoordinates = [];
+	let killedYacht = false;
+
+	// gather all enemy yacht points
+	opponent.yachts.forEach(yacht => {
+		yacht.points.forEach(point => opponentCoordinates.push(point));
+	});
+
+	const isHit = opponentCoordinates.some(coordinate => {
+		return coordinate.row === target.row && coordinate.col === target.col;
+	});
+
+	// mark hit points and detect killed yacht
+	opponent.yachts.forEach(yacht => {
+		yacht.points.forEach(point => {
+			if (point.row === target.row && point.col === target.col) {
+				const hasObj = yacht.hit_points.some(coordinate => {
+					return coordinate.row === target.row && coordinate.col === target.col;
+				});
+
+				if (!hasObj) {
+					yacht.hit_points.push(target);
+				}
+
+				if (yacht.hit_points.length === yacht.points.length) {
+					yacht.is_killed = true;
+					killedYacht = yacht;
+				}
+			}
+		});
+	});
+
+	const gameOver = opponent.yachts.every(yacht => yacht.is_killed === true);
+
+	return { isHit, killedYacht, gameOver };
+}
+
+// Computer's turn: shoot at the human player and emit the result
+const botTurn = function (room, bot, human) {
+	// the room may have been removed (game ended / player left) while waiting
+	if (!rooms.includes(room)) {
+		return;
+	}
+
+	const target = getBotShot(bot);
+	const result = processShot(room, bot, target);
+	updateBotAi(bot, target, result.isHit, result.killedYacht);
+
+	if (result.isHit) {
+		io.in(room.id).emit('shot:hit', bot.id, target, result.killedYacht);
+	} else {
+		io.in(room.id).emit('shot:miss', bot.id, target);
+	}
+
+	// switch turns
+	bot.move = false;
+	human.move = true;
+
+	if (result.gameOver) {
+		io.in(room.id).emit('shot:winner', bot.id, target, result.killedYacht);
+	}
+}
+
 module.exports = function (socket, _io) {
 	// save a reference to the socket.io server instance
 	io = _io;
@@ -180,13 +338,62 @@ module.exports = function (socket, _io) {
 	// handle user disconnect
 	socket.on('disconnect', handleDisconnect)
 
-	socket.on('user:joined', function (username, yachts, callback) {
+	socket.on('user:joined', function (username, yachts, mode, callback) {
 
+		const gameMode = (mode === 'computer') ? 'computer' : 'friend';
+
+		// ---------- SINGLE PLAYER (against the computer) ----------
+		if (gameMode === 'computer') {
+
+			const room = {
+				id: 'room_' + this.id,
+				mode: 'computer',
+				users: [],
+			}
+			rooms.push(room);
+
+			// human user (always moves first for a friendlier experience)
+			const user = {
+				id: this.id,
+				username: username,
+				move: true,
+				killed_ships: 0,
+				yachts: buildYachts(yachts),
+			}
+			room.users.push(user);
+			this.join(room.id);
+
+			// computer opponent (virtual player, no socket)
+			const bot = {
+				id: 'bot_' + this.id,
+				username: 'Computer',
+				move: false,
+				killed_ships: 0,
+				isBot: true,
+				yachts: getNewYachts(),
+				ai: { shots: [], targets: [] },
+			}
+			room.users.push(bot);
+
+			// respond immediately - there is nobody to wait for
+			callback({
+				yachts: user.yachts,
+				waiting: false,
+				computerGame: true,
+				opponent: bot.username,
+				move: user.move,
+			});
+
+			return;
+		}
+
+		// ---------- MULTIPLAYER (against a friend) ----------
 		// if there is no room creating a new room with id equal to the first sockets id
 		if (!roomName) {
 			roomName = 'room_' + this.id
 			let room = {
 				id: roomName,
+				mode: 'friend',
 				users: [],
 			}
 			// push a new room to all rooms array
@@ -210,22 +417,8 @@ module.exports = function (socket, _io) {
 			id: this.id,
 			username: username,
 			move: false,
-			killed_ships: 0
-		}
-
-		if (!yachts) {
-			user.yachts = getNewYachts()
-		} else {
-			user.yachts = []
-			for (let yacht of yachts) {
-				if (yacht.vertical === 'horizontal') {
-					yacht.vertical = 0
-				} else {
-					yacht.vertical = 1
-				}
-				let new_yacht = new Yacht(yacht.length, yacht.row_start, yacht.col_start, yacht.vertical)
-				user.yachts.push(new_yacht)
-			}
+			killed_ships: 0,
+			yachts: buildYachts(yachts),
 		}
 
 		room.users.push(user);
@@ -270,70 +463,35 @@ module.exports = function (socket, _io) {
 			const user = room.users.find(user => user.id === socket.id)
 			const opponent = room.users.find(user => user.id !== socket.id)
 
-			// Empty array that will contain all the enemy yacht points
-			let opponentCoordinates = []
+			if (!opponent) {
+				return
+			}
 
-			// Declaring empty killedYacht variable - yacht will be pushed into here when it is killed, in order for it to be emitted to the client side
-			let killedYacht = false;
+			// in single player mode the human can only shoot on their own turn
+			if (room.mode === 'computer' && user.move !== true) {
+				return
+			}
 
-			// Pushing all enemy yacht points into opponentCoordinates array
-			opponent.yachts.map((yacht) => {
-				yacht.points.map((point) => {
-					opponentCoordinates.push(point)
-				})
-			})
+			const result = processShot(room, user, shootTarget);
 
-			// Checking to see if opponent has a ship on a point we just clicked on, in which case it returns true, otherwise it returns false
-			const isHit = opponentCoordinates.some(coordinate => {
-				return coordinate.row === shootTarget.row && coordinate.col === shootTarget.col
-			})
-
-			// Mapping over yachts
-			opponent.yachts.map((yacht) => {
-				// Mapping over points
-				yacht.points.map((point) => {
-					// Checking if user has hit a yacht point
-					if (point.row === shootTarget.row && point.col === shootTarget.col) {
-
-						// Since there exists a slight delay between clicking a correct coordinate, and said coordinate being blocked from further clicks, verification needs to be added to make sure the tile can't be clicked rapidly, in turn filling the hit_points array with multiple instances of the same coordinate and triggering other bugs down the line such as a yacht being killed, when it shouldn't be.
-
-						// VERIFICATION - checking if the coordinate already exists in the array of hit_points and if it does, returning true, if it doesn't returning false
-						const hasObj = yacht.hit_points.some(coordinate => {
-							return coordinate.row === shootTarget.row && coordinate.col === shootTarget.col
-						})
-
-						// If hit_points doesn't already contain the hit coordinate, push the coordinate into hit_points
-						if (!hasObj) {
-							// Pushing the hit coordinate into hit_points
-							yacht.hit_points.push(shootTarget)
-						}
-
-						// Checking if the amount of hit points equals the amount of total points for the yacht, in which case the yacht is killed and the is_killed status is set to true, for that yacht
-						if (yacht.hit_points.length === yacht.points.length) {
-							yacht.is_killed = true
-							killedYacht = yacht
-						}
-					}
-				})
-
-			})
-
-			// If yacht gets hit, emit this to the client side
-			if (isHit) {
-				io.in(room.id).emit('shot:hit', user.id, shootTarget, killedYacht)
-				// If it didn't get hit, the shot must have missed - emit this to the client side
+			if (result.isHit) {
+				io.in(room.id).emit('shot:hit', user.id, shootTarget, result.killedYacht)
 			} else {
 				io.in(room.id).emit('shot:miss', user.id, shootTarget)
 			}
 
-			// Returns true if all enemy yachts are killed - all enemy yacht is_killed === true, otherwise returns false
-			const gameOver = opponent.yachts.every(yacht => {
-				return yacht.is_killed === true
-			})
+			if (result.gameOver) {
+				io.in(room.id).emit('shot:winner', user.id, shootTarget, result.killedYacht)
+				return
+			}
 
-			// If every enemy yacht gets killed - emit this to the client side
-			if (gameOver) {
-				io.in(room.id).emit('shot:winner', user.id, shootTarget, killedYacht)
+			// single player: hand the turn over to the computer
+			if (room.mode === 'computer' && opponent.isBot) {
+				user.move = false;
+				opponent.move = true;
+
+				const delay = 800 + Math.random() * 800;
+				setTimeout(() => botTurn(room, opponent, user), delay);
 			}
 		}
 	})
@@ -346,4 +504,3 @@ module.exports = function (socket, _io) {
 		rooms.splice(rooms.indexOf(room), 1);
 	})
 }
-

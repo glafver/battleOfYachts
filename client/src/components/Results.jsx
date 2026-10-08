@@ -5,8 +5,8 @@ const Results = () => {
 
 	return (
 		<div className="result-container">
-			<img src={illustration} alt="illustration of seagull" className="seagull" />
-			<p className="m-0">{resultsMessage}</p>
+			<img key={illustration} src={illustration} alt="illustration of seagull" className="seagull" />
+			<p key={resultsMessage} className="m-0">{resultsMessage}</p>
 		</div>
 	)
 }

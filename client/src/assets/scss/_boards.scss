@@ -7,20 +7,25 @@
 */
 .board-container {
 	background-color: $oceanblue;
-	padding: 2%;
+	padding: 0.5rem;
 	border-radius: 0.5em;
+	width: fit-content;
+	max-width: 100%;
+	margin: 0 auto;
 }
 
 .username-title {
-	font-size: 0.5rem;
+	display: none;
+	font-size: 0.85rem;
 	font-family: $standardFont;
 	color: $lightOceanBlue;
+	margin-bottom: 0;
 }
 
 .username-board {
-	margin-bottom: 1rem;
+	margin-bottom: 0.4rem;
 	color: $gold;
-	font-size: 1.5rem;
+	font-size: 1.6rem;
 }
 
 .boards {
@@ -30,10 +35,11 @@
 }
 
 .all-boards {
-	display: grid;
-	grid-template-rows: repeat(2, 1fr);
-	grid-template-columns: repeat(1, 1fr);
-	gap: 4rem;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 1.25rem;
 }
 
 .board {
@@ -43,6 +49,10 @@
 	grid-template-rows: repeat(10, 1fr);
 	grid-template-columns: repeat(10, 1fr);
 	gap: 1px;
+
+	// cap the board size so it always fits on screen (no scrolling)
+	width: min(88vw, 40vh);
+	margin: 0 auto;
 }
 
 /* .board .board_cell:nth-child(3n) {
@@ -70,6 +80,7 @@
 	background-image: url(../images/hit.png);
 	background-size: cover;
 	cursor: not-allowed;
+	animation: cell-appear 0.35s ease;
 }
 
 .board_miss {
@@ -77,25 +88,36 @@
 	background-color: $oceanblue;
 	background-size: cover;
 	cursor: not-allowed;
-	animation: rotation 4s infinite linear;
+	animation: cell-appear 0.35s ease, rotation 4s infinite linear;
 	border-radius: 50%;
 }
 
 .board_killed {
 	background-color: $killed;
 	cursor: not-allowed;
+	animation: cell-appear 0.35s ease;
 }
 
 .board_my_yacht_hit {
 	background-color: $light_hit;
+	animation: cell-appear 0.35s ease;
 }
 
 .board_my_yacht_miss {
 	background-image: url(../images/miss4.png);
 	background-color: $oceanblue;
 	background-size: cover;
-	animation: rotation 4s infinite linear;
+	animation: cell-appear 0.35s ease, rotation 4s infinite linear;
 	border-radius: 50%;
+}
+
+@keyframes cell-appear {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
 }
 
 @keyframes rotation {
@@ -109,16 +131,56 @@
 
 .board_my_yacht_killed {
 	background-color: $light_killed;
+	animation: cell-appear 0.35s ease;
 }
 
 
 @media screen and (min-width: 600px) {
 	.all-boards {
-		display: grid;
-		grid-template-rows: repeat(1, 1fr);
-		grid-template-columns: repeat(2, 1fr);
-		gap: 1rem;
+		flex-direction: row;
+		flex-wrap: wrap;
+		align-items: flex-start;
+		gap: 1.25rem;
+	}
+
+	.board {
+		width: min(42vw, 62vh);
 	}
 }
 
-@media screen and (min-width: 1440px) {}
+/* Mobile board tabs */
+.board-tabs {
+	display: none;
+}
+
+.board-tab {
+	padding: 0.4rem 1.25rem;
+	border: 1px solid $gold;
+	border-radius: 999px;
+	background: white;
+	color: $oceanblue;
+	font-family: $standardFont;
+	font-weight: 600;
+	font-size: 0.9rem;
+	cursor: pointer;
+	transition: all 0.2s ease;
+}
+
+.board-tab.active {
+	background: $oceanblue;
+	color: white;
+	border-color: $oceanblue;
+}
+
+@media screen and (max-width: 600px) {
+	.board-tabs {
+		display: flex;
+		justify-content: center;
+		gap: 0.5rem;
+		margin-bottom: 1rem;
+	}
+
+	.board-inactive {
+		display: none;
+	}
+}

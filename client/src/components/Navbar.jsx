@@ -1,43 +1,50 @@
 import 'bootstrap/dist/css/bootstrap.css'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
-import { Modal } from 'react-bootstrap'
-import rules_1 from '../assets/images/rules_1.png'
+import { useGameContext } from '../contexts/UserContext'
+import { loadStatsForName, loadLastName } from '../utils/stats'
 
 const Navbar = () => {
-    const [show, setShow] = useState(false);
+	const { userName, setUserName, setStats } = useGameContext()
+	const navigate = useNavigate()
+	const [menuOpen, setMenuOpen] = useState(false)
 
-    const handleClose = () => setShow(false);
-    const handleShow = () => setShow(true);
+	const handleOpenStatistics = () => {
+		const name = userName || loadLastName()
+		setUserName(name || undefined)
+		setStats(loadStatsForName(name))
+		setMenuOpen(false)
+		navigate('/lobby')
+	}
 
-    return (
-        <>
-            <nav className="navbar">
-                <div className="game-container nav-container">
-                    <Link className="logo navbar-brand" to={'/'}>
-                        <h1 className="logoText">Battle of the Yachts</h1>
-                    </Link>
-                    <button className="button btn-gold" onClick={handleShow}>
-                        Game instructions
-                    </button>
-                </div>
+	return (
+		<nav className="navbar">
+			<div className="game-container nav-container">
+				<Link className="logo navbar-brand" to={'/'}>
+					<img className="logo-icon" src="/favicon.png" alt="Battle of the Yachts logo" />
+					<h1 className="logoText">Battle of the Yachts</h1>
+				</Link>
 
-                <Modal id="modalDialogInstructions" show={show} onHide={handleClose}>
-                    <Modal.Header id="modalHeader" closeButton>
-                        <Modal.Title id="modalTitle">How to play</Modal.Title>
-                    </Modal.Header>
-                    <Modal.Body id="modalContent">
-                        <p>1. First you need to enter your nickname.</p>
-                        <p>2. Then you can choose whether you want to receive automatically generated ships or place them yourself on the playing field.</p>
-                        <p>3. To place the ships manually just click on one of the ships, and then on the cell in the playing field.</p>
-                        <img className='img-fluid' src={require('../assets/images/rules_2.png')} alt="" />
-                        <p>4. After that, you will be on the playing field. Your opponent will try to guess where your ships are. When it's your turn, try to guess where their ships are by choosing a tile on the opposing board. Try to sink all their battleships to win the game.</p>
-                        <img className='img-fluid' src={rules_1} alt="" />
-                    </Modal.Body>
-                </Modal>
-            </nav>
-        </>
-    )
+				<div className="nav-actions">
+					<Link className="button nav-btn" to="/how-to-play">How to play</Link>
+					<button className="button nav-btn" onClick={handleOpenStatistics}>My statistics</button>
+				</div>
+
+				<button className="nav-burger" onClick={() => setMenuOpen(!menuOpen)} aria-label="Toggle menu">
+					<span />
+					<span />
+					<span />
+				</button>
+			</div>
+
+			{menuOpen && (
+				<div className="nav-mobile-menu">
+					<Link className="button nav-btn" to="/how-to-play" onClick={() => setMenuOpen(false)}>How to play</Link>
+					<button className="button nav-btn" onClick={handleOpenStatistics}>My statistics</button>
+				</div>
+			)}
+		</nav>
+	)
 }
 
 export default Navbar

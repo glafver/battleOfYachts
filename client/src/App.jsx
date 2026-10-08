@@ -5,6 +5,8 @@ import { Route, Routes } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import Game from './pages/GamePage'
 import Home from './pages/HomePage'
+import Lobby from './components/Lobby'
+import HowToPlay from './components/HowToPlay'
 
 const App = () => {
 	return (
@@ -13,6 +15,8 @@ const App = () => {
 			<Routes>
 				<Route path="/" element={<Home />}></Route>
 				<Route path="/game" element={<Game />}></Route>
+				<Route path="/lobby" element={<Lobby />}></Route>
+				<Route path="/how-to-play" element={<HowToPlay />}></Route>
 			</Routes>
 		</div>
 	)

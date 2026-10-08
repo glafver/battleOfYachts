@@ -8,7 +8,7 @@ import confused_seagull from '../assets/images/seagull10.svg'
 
 const Game = () => {
 
-	const { userName, setUserName, setShootTarget, setYachts, opponentName, setOpponentName, countdown, waiting, setWaiting, setMove, setCountdown, setResultsMessage, socket } = useGameContext()
+	const { userName, setUserName, setShootTarget, opponentName, setOpponentName, countdown, waiting, setWaiting, setMove, setCountdown, setResultsMessage, socket } = useGameContext()
 
 	const navigate = useNavigate()
 	const [disconnect, setDisconnect] = useState(false)
@@ -27,7 +27,7 @@ const Game = () => {
 
 	useEffect(() => {
 		// users listening when the opponent will be found
-		socket.on('user:opponent_found', (waiting_opponent, opponent, move) => {
+		const handleOpponentFound = (waiting_opponent, opponent, move) => {
 
 			setMove(move)
 			setWaiting(waiting_opponent)
@@ -42,14 +42,20 @@ const Game = () => {
 			// showing a modal with countdown
 			setCountdown(true)
 
-		});
+		};
 
-		socket.on('user:disconnected', () => {
+		const handleUserDisconnected = () => {
 			setDisconnect(true)
+		}
 
-		})
+		socket.on('user:opponent_found', handleOpponentFound);
+		socket.on('user:disconnected', handleUserDisconnected)
 
-	}, [socket, setUserName, setOpponentName, setShootTarget, setYachts, setWaiting, setCountdown, setMove, setResultsMessage])
+		return () => {
+			socket.off('user:opponent_found', handleOpponentFound)
+			socket.off('user:disconnected', handleUserDisconnected)
+		}
+	}, [socket, setMove, setWaiting, setOpponentName, setResultsMessage, setCountdown])
 
 	useEffect(() => {
 		if (!userName) {

@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom'
 
 
 const ChooseYacht = () => {
-    const { manualChoice, setManualChoice, setYachts, setWaiting, userName, socket } = useGameContext()
+    const { manualChoice, setManualChoice, setYachts, setWaiting, userName, setOpponentName, setMove, setCountdown, setResultsMessage, gameMode, socket } = useGameContext()
 
     const navigate = useNavigate()
 
@@ -173,9 +173,16 @@ const ChooseYacht = () => {
 
     const handleSubmit = () => {
 
-        socket.emit('user:joined', userName, tempYachts, (result) => {
+        socket.emit('user:joined', userName, tempYachts, gameMode, (result) => {
             setYachts(result.yachts)
             setWaiting(result.waiting)
+
+            if (result.computerGame) {
+                setOpponentName(result.opponent)
+                setMove(result.move)
+                setCountdown(true)
+                setResultsMessage("You shoot first! Try to hit the computer's yachts!")
+            }
         })
         setManualChoice(false)
         navigate('/game')
@@ -256,7 +263,7 @@ const ChooseYacht = () => {
                 <div id="chooseYachts">
                     <p id="chooseYachtMsg">{message}</p>
 
-                    <div className="yachts-container mx-auto mb-3" onClick={resetYachts}>
+                    <div className="yachts-container" onClick={resetYachts}>
                         <div id="vertical_4" style={{ gridArea: "2 / 2 / span 4 / span 1", cursor: "pointer" }} draggable onDragStart={getYacht} className={yachtsLength.includes(4) ? 'vertical_4 active' : 'd-none'}>
                         </div>
 

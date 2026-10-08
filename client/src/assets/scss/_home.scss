@@ -1,83 +1,235 @@
+@import 'colors';
 @import 'fonts';
 
 /**
-* Home
+* Home / Hero
 */
 
-form {
-	width: 100%;
-}
-
-.form-container {
+.hero {
+	position: relative;
+	min-height: calc(100vh - 4.5rem);
 	display: flex;
-	flex-direction: column;
 	align-items: center;
-
-	height: 80vh;
-	padding: 4rem 0;
-	margin-top: 2rem;
-}
-
-.form-username {
-	display: flex;
-	flex-direction: column;
 	justify-content: center;
+	text-align: center;
+	padding: 3rem 1rem 5rem;
+	overflow: hidden;
+}
+
+.hero-inner {
+	position: relative;
+	z-index: 2;
+	width: 100%;
+	max-width: 720px;
+	display: flex;
+	flex-direction: column;
 	align-items: center;
+}
+
+.hero-eyebrow {
+	font-family: $standardFont;
+	text-transform: uppercase;
+	letter-spacing: 0.22em;
+	font-size: 0.85rem;
+	font-weight: 600;
+	color: $oceanblue;
+	margin-bottom: 0.5rem;
+}
+
+.hero-title {
+	font-family: $cursiveFont;
+	font-size: clamp(2.2rem, 9vw, 4.6rem);
+	color: $nav-color;
+	margin: 0;
+	line-height: 1.05;
+}
+
+.hero-tagline {
+	font-family: $standardFont;
+	font-size: 1.1rem;
+	color: #555;
+	margin: 0.75rem 0 2rem;
+	max-width: 480px;
+}
+
+.start-card {
+	width: 100%;
+	max-width: 460px;
+	background: white;
+	border: 1px solid $gold;
+	border-radius: 16px;
+	padding: 1.5rem;
+	box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+}
+
+.start-label {
+	font-family: $standardFont;
+	font-weight: 600;
+	font-size: 0.9rem;
+	color: $oceanblue;
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
 }
 
 #input-username {
-	border: none;
-	border-bottom: 2px solid rgb(0, 0, 0);
-	border-radius: none;
-	border-radius: 0px;
-
-	font-style: italic;
+	border: 1px solid $gold;
+	border-radius: 10px;
+	padding: 0.7rem 1rem;
 	font-family: $cursiveFont;
-	font-size: 1.5rem;
+	font-style: italic;
+	font-size: 1.4rem;
 	text-align: center;
-	margin-top: 2rem;
+	width: 100%;
+	background: white;
 }
 
 #input-username::placeholder {
-	color: #ae9b8946;
+	color: #8a7a66;
 }
 
 #input-username:focus {
-	box-shadow: none;
+	outline: none;
+	border-color: $gold;
+	box-shadow: 0 0 0 3px rgba(174, 155, 137, 0.3);
 }
 
-#start-button {
-	width: 100%;
-	margin-top: 4rem;
+.mode-buttons {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 0.75rem;
 }
 
-#yachtOne {
-	width: 40px;
+.mode-card {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 0.2rem;
+	border: 1px solid $oceanblue;
+	border-radius: 12px;
+	background: white;
+	padding: 0.9rem 0.5rem;
+	cursor: pointer;
+	transition: all 0.2s ease;
+	font-family: $standardFont;
 }
 
-@media screen and (min-width: 834px) {
-	form {
-		width: 80%;
+.mode-card:hover:not(:disabled) {
+	background: $oceanblue;
+	color: white;
+	transform: translateY(-2px);
+	box-shadow: 0 6px 14px rgba(14, 89, 85, 0.25);
+}
+
+.mode-card:disabled {
+	opacity: 0.45;
+	cursor: not-allowed;
+}
+
+.mode-title {
+	font-weight: 700;
+	font-size: 1rem;
+}
+
+.mode-desc {
+	font-size: 0.85rem;
+	opacity: 0.75;
+}
+
+.hero-actions {
+	display: flex;
+	gap: 1rem;
+	flex-wrap: wrap;
+	justify-content: center;
+	margin-top: 1.5rem;
+}
+
+.btn-ghost {
+	background: transparent;
+	border: 1px solid $oceanblue;
+	color: $oceanblue;
+
+	&:hover {
+		background: $oceanblue;
+		color: white;
 	}
+}
 
-	#start-button {
-		width: 30%;
-		
+// decorative boat and seagull
+.hero-boat {
+	position: absolute;
+	bottom: 8vh;
+	left: 4%;
+	width: min(220px, 28vw);
+	opacity: 0.9;
+	pointer-events: none;
+	animation: boat-float 5s ease-in-out infinite;
+}
+
+.hero-welcome {
+	position: absolute;
+	top: 8%;
+	right: 4%;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 0.25rem;
+	pointer-events: none;
+	animation: seagull-float 6s ease-in-out infinite;
+}
+
+.hero-welcome-seagull {
+	width: min(150px, 20vw);
+	padding: 0;
+}
+
+.hero-welcome-text {
+	font-family: $cursiveFont;
+	font-size: 1.8rem;
+	color: $oceanblue;
+	transform: rotate(-4deg);
+	line-height: 1;
+}
+
+@keyframes boat-float {
+	0%,
+	100% {
+		transform: translateY(0) rotate(-2deg);
+	}
+	50% {
+		transform: translateY(-12px) rotate(2deg);
 	}
 }
 
-@media screen and (min-width: 600px) {
-	.form-container {
-		margin-top: 4rem;
+@keyframes seagull-float {
+	0%,
+	100% {
+		transform: translateY(0);
+	}
+	50% {
+		transform: translateY(-14px);
 	}
 }
 
-@media screen and (min-width: 1440px) {
-	form {
-		width: 60%;
-	}
-
-	.form-container {
-		margin-top: 6rem;
+@media screen and (max-width: 600px) {
+	.hero-boat,
+	.hero-welcome {
+		display: none;
 	}
 }
+
+@media screen and (max-width: 480px) {
+	.mode-buttons {
+		grid-template-columns: 1fr;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.hero-boat,
+	.hero-welcome {
+		animation: none;
+	}
+}
+
