@@ -73,6 +73,19 @@ Open <http://localhost:3000> and play!
 
 > **Note:** to play against a friend, open the app in two browsers/tabs and have both players join a game.
 
+## Run with Docker (single container)
+
+The whole app can run as a single container — the server serves the built React client and handles Socket.io.
+
+```bash
+docker build -t battle-of-yachts .
+docker run -p 4000:4000 battle-of-yachts
+```
+
+Open <http://localhost:4000>.
+
+The server reads the `PORT` environment variable, so it also works on serverless container platforms (Google Cloud Run, Render, Fly.io, etc.).
+
 ## How to play
 
 1. Enter your name.

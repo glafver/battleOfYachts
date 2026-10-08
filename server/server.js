@@ -8,6 +8,8 @@ require('dotenv').config();
 
 const debug = require('debug')('game:server');
 const http = require('http');
+const path = require('path');
+const express = require('express');
 const socketio = require('socket.io');
 const { instrument } = require("@socket.io/admin-ui");
 const socket_controller = require('./controllers/socket_controller');
@@ -18,9 +20,35 @@ const socket_controller = require('./controllers/socket_controller');
 const port = process.env.PORT || '4000';
 
 /**
+ * Create the Express app (used to serve the built React client).
+ */
+const app = express();
+const publicDir = path.join(__dirname, 'public');
+
+// Let Socket.io (a separate HTTP listener) handle its own requests.
+app.use((req, res, next) => {
+	if (req.url.startsWith('/socket.io')) {
+		return;
+	}
+	next();
+});
+
+// Serve static files (the built React app).
+app.use(express.static(publicDir));
+
+// SPA fallback: serve index.html for any unmatched GET route.
+app.get('*', (req, res) => {
+	res.sendFile(path.join(publicDir, 'index.html'), (err) => {
+		if (err) {
+			res.status(404).send('Client not built. Run `npm run build` in client/ first.');
+		}
+	});
+});
+
+/**
  * Create HTTP and Socket.IO server.
  */
-const server = http.createServer();
+const server = http.createServer(app);
 const io = new socketio.Server(server, {
 	cors: {
 		origin: '*',
