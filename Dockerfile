@@ -6,6 +6,8 @@ COPY client/package*.json ./
 RUN npm install
 
 COPY client/ ./
+ENV CI=false
+ENV GENERATE_SOURCEMAP=false
 RUN npm run build
 
 # ---- Stage 2: run the server ----
