@@ -1,7 +1,8 @@
 import { useNavigate } from 'react-router-dom'
 import { useGameContext } from '../contexts/UserContext'
 import standard_seagull from '../assets/images/seagull5.svg'
-import seagull9 from '../assets/images/seagull9.svg'
+import seagull3 from '../assets/images/seagull3.svg'
+import seagull4 from '../assets/images/seagull4.svg'
 import FloatingYachts from './FloatingYachts'
 
 const Lobby = () => {
@@ -10,6 +11,7 @@ const Lobby = () => {
 
 	const won = lastResult === 'win'
 	const hasPlayed = stats.gamesPlayed > 0
+	const resultSeagull = lastResult ? (won ? seagull3 : seagull4) : standard_seagull
 
 	const accuracy = stats.shots > 0 ? Math.round((stats.hits / stats.shots) * 100) : 0
 	const winRate = stats.gamesPlayed > 0 ? Math.round((stats.wins / stats.gamesPlayed) * 100) : 0
@@ -27,7 +29,7 @@ const Lobby = () => {
 				<h1 className="lobby-title">{lastResult ? (won ? 'Victory!' : 'Defeat') : 'Your statistics'}</h1>
 				<img
 					className="lobby-seagull"
-					src={lastResult ? seagull9 : standard_seagull}
+					src={resultSeagull}
 					alt="illustration"
 				/>
 
