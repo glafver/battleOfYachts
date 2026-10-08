@@ -1,0 +1,46 @@
+@import 'colors';
+
+/**
+* Nav
+*/
+
+.navbar {
+	background-color: $nav-color;
+	height: 15vh;
+	padding: 1rem;
+}
+
+.nav-container {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+.logo {
+	color: $nav-font-color;
+	display: flex;
+	align-items: center;
+}
+
+.logoText {
+	font-size: 1.7rem;
+	margin-bottom: 0;
+}
+
+.logo:hover {
+	color: $gold;
+}
+
+@media screen and (min-width: 600px) {
+	.navbar {
+		height: 10vh;
+		padding: 0.8rem;
+	}
+}
+
+@media screen and (min-width: 1440px) {
+	.navbar {
+		height: 10vh;
+		padding: 0.5rem;
+	}
+}

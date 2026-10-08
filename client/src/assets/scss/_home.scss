@@ -1,0 +1,83 @@
+@import 'fonts';
+
+/**
+* Home
+*/
+
+form {
+	width: 100%;
+}
+
+.form-container {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+
+	height: 80vh;
+	padding: 4rem 0;
+	margin-top: 2rem;
+}
+
+.form-username {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+}
+
+#input-username {
+	border: none;
+	border-bottom: 2px solid rgb(0, 0, 0);
+	border-radius: none;
+	border-radius: 0px;
+
+	font-style: italic;
+	font-family: $cursiveFont;
+	font-size: 1.5rem;
+	text-align: center;
+	margin-top: 2rem;
+}
+
+#input-username::placeholder {
+	color: #ae9b8946;
+}
+
+#input-username:focus {
+	box-shadow: none;
+}
+
+#start-button {
+	width: 100%;
+	margin-top: 4rem;
+}
+
+#yachtOne {
+	width: 40px;
+}
+
+@media screen and (min-width: 834px) {
+	form {
+		width: 80%;
+	}
+
+	#start-button {
+		width: 30%;
+		
+	}
+}
+
+@media screen and (min-width: 600px) {
+	.form-container {
+		margin-top: 4rem;
+	}
+}
+
+@media screen and (min-width: 1440px) {
+	form {
+		width: 60%;
+	}
+
+	.form-container {
+		margin-top: 6rem;
+	}
+}

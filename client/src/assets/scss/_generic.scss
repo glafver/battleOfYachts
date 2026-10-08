@@ -1,0 +1,66 @@
+@import 'colors';
+@import 'fonts';
+
+/**
+* Generic styles
+*/
+
+html,
+body,
+#root {
+	min-height: 100vh;
+}
+
+body {
+	background-color: $bg-color;
+	margin: 0;
+}
+
+h1,
+h2 {
+	font-family: $cursiveFont;
+	font-size: 0.9rem;
+}
+
+p {
+	font-size: 1.2rem;
+}
+
+img {
+	padding: 1rem 0;
+}
+
+.game-container {
+	font-family: $cursiveFont;
+	font-weight: 900;
+	width: 90%;
+	margin: auto;
+}
+
+.button {
+	border: none;
+	border-radius: 10px;
+	padding: 0.5rem 1rem;
+	margin: 0.5rem 1rem;
+
+	font-family: $standardFont;
+	font-weight: 600;
+	font-size: 0.7rem;
+}
+
+.btn-gold {
+	background-color: $gold;
+	color: black;
+
+	&:hover {
+		background-color: scale-color($gold, $lightness: 10%);
+	}
+}
+
+.cursor-pointer {
+	cursor: pointer;
+}
+
+.cursor-not-allowed {
+	cursor: not-allowed;
+}

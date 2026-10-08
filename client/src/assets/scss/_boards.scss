@@ -1,0 +1,124 @@
+@import 'colors';
+@import 'fonts';
+
+
+/**
+* Boards
+*/
+.board-container {
+	background-color: $oceanblue;
+	padding: 2%;
+	border-radius: 0.5em;
+}
+
+.username-title {
+	font-size: 0.5rem;
+	font-family: $standardFont;
+	color: $lightOceanBlue;
+}
+
+.username-board {
+	margin-bottom: 1rem;
+	color: $gold;
+	font-size: 1.5rem;
+}
+
+.boards {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.all-boards {
+	display: grid;
+	grid-template-rows: repeat(2, 1fr);
+	grid-template-columns: repeat(1, 1fr);
+	gap: 4rem;
+}
+
+.board {
+	background-color: $oceanblue;
+
+	display: grid;
+	grid-template-rows: repeat(10, 1fr);
+	grid-template-columns: repeat(10, 1fr);
+	gap: 1px;
+}
+
+/* .board .board_cell:nth-child(3n) {
+	background-color: $oceanblue;
+} */
+
+.board_cell {
+	background-color: $lightOceanBlue;
+	cursor: pointer;
+
+	width: 100%;
+	aspect-ratio: 1 / 1;
+}
+
+.hover_cell {
+	opacity: 0.3;
+	border: 3px solid black;
+}
+
+.board_yacht {
+	background-color: $gold;
+}
+
+.board_hit {
+	background-image: url(../images/hit.png);
+	background-size: cover;
+	cursor: not-allowed;
+}
+
+.board_miss {
+	background-image: url(../images/miss4.png);
+	background-color: $oceanblue;
+	background-size: cover;
+	cursor: not-allowed;
+	animation: rotation 4s infinite linear;
+	border-radius: 50%;
+}
+
+.board_killed {
+	background-color: $killed;
+	cursor: not-allowed;
+}
+
+.board_my_yacht_hit {
+	background-color: $light_hit;
+}
+
+.board_my_yacht_miss {
+	background-image: url(../images/miss4.png);
+	background-color: $oceanblue;
+	background-size: cover;
+	animation: rotation 4s infinite linear;
+	border-radius: 50%;
+}
+
+@keyframes rotation {
+	from {
+	  transform: rotate(0deg);
+	}
+	to {
+	  transform: rotate(359deg);
+	}
+}
+
+.board_my_yacht_killed {
+	background-color: $light_killed;
+}
+
+
+@media screen and (min-width: 600px) {
+	.all-boards {
+		display: grid;
+		grid-template-rows: repeat(1, 1fr);
+		grid-template-columns: repeat(2, 1fr);
+		gap: 1rem;
+	}
+}
+
+@media screen and (min-width: 1440px) {}
